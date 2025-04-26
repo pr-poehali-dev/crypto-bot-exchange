@@ -1,12 +1,41 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useEffect } from 'react';
+import CoinClicker from '@/components/CoinClicker';
+import BoosterTimer from '@/components/BoosterTimer';
+import Navigation from '@/components/Navigation';
+import { initTelegramWebApp } from '@/lib/telegram';
+import { useGameStore } from '@/lib/store';
 
 const Index = () => {
+  const { coins, clickMultiplier } = useGameStore();
+  
+  useEffect(() => {
+    // Инициализируем Telegram WebApp если он доступен
+    initTelegramWebApp();
+    
+    // Устанавливаем заголовок страницы
+    document.title = 'Кликер монет';
+  }, []);
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 color-black text-black">Добро пожаловать!</h1>
-        <p className="text-xl text-gray-600">тут будет отображаться ваш проект</p>
-      </div>
+    <div className="min-h-screen flex flex-col">
+      <header className="p-4 border-b flex justify-between items-center">
+        <h1 className="text-xl font-bold">Монеты: {coins.toFixed(0)}</h1>
+        {clickMultiplier > 1 && (
+          <div className="bg-accent/20 px-3 py-1 rounded-full text-sm">
+            x{clickMultiplier}
+          </div>
+        )}
+      </header>
+      
+      <main className="flex-1 flex flex-col items-center justify-center p-4">
+        <CoinClicker />
+        
+        <div className="mt-6 w-full max-w-md">
+          <BoosterTimer />
+        </div>
+      </main>
+      
+      <Navigation />
     </div>
   );
 };
