@@ -1,96 +1,52 @@
-import { useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import CoinClicker from '@/components/CoinClicker';
-import Navigation from '@/components/Navigation';
-import TelegramConnect from '@/components/TelegramConnect';
-import { initTelegramWebApp } from '@/lib/telegram';
-import { useGameStore } from '@/lib/store';
+import { useEffect } from "react";
+import CoinClicker from "@/components/CoinClicker";
+import Navigation from "@/components/Navigation";
+import BoosterTimer from "@/components/BoosterTimer";
+import { useGameStore } from "@/lib/store";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { initTelegramWebApp, getTelegramUser } from "@/lib/telegram";
+import TelegramConnect from "@/components/TelegramConnect";
 
-const Index: React.FC = () => {
-  const { activeBoosters, boosters } = useGameStore();
-  
-  // Отфильтруем только активные временные бустеры
-  const activeTempBoosters = boosters.filter(
-    booster => booster.active && booster.duration > 0
-  );
+const Index = () => {
+  const { coins, clickMultiplier, coinsPerSecond } = useGameStore();
   
   useEffect(() => {
-    // Инициализация Telegram WebApp
+    // Инициализируем Telegram WebApp
     initTelegramWebApp();
+    
+    // Проверяем пользователя Telegram
+    const user = getTelegramUser();
+    if (user) {
+      console.log('Telegram user:', user);
+    } else {
+      console.log('Standalone mode or user not authorized');
+    }
   }, []);
   
   return (
-    <div className="container max-w-md mx-auto px-4 pb-20 pt-6">
-      <div className="text-center mb-6">
-        <h1 className="text-3xl font-bold">Тапалка Монет</h1>
-        <p className="text-muted-foreground">Тапай и зарабатывай реальные деньги!</p>
-      </div>
-      
-      <TelegramConnect />
-      
-      <div className="flex flex-col items-center justify-center py-12">
-        <CoinClicker />
-      </div>
-      
-      {activeTempBoosters.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-medium mb-2">Активные бустеры</h2>
-          <div className="space-y-2">
-            {activeTempBoosters.map(booster => (
-              <Card key={booster.id} className="p-3 bg-primary/5 border-primary/20">
-                <div className="flex items-center">
-                  <span className="text-xl mr-2">{booster.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-medium text-sm">{booster.name}</h3>
-                      <span className="text-xs text-primary">x{booster.multiplier}</span>
-                    </div>
-                    <BoosterProgressBar booster={booster} />
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+    <div className="container mx-auto px-4 py-8 flex flex-col min-h-screen">
+      <div className="flex flex-col items-center justify-center flex-grow gap-8">
+        <div className="w-full max-w-lg">
+          <TelegramConnect />
         </div>
-      )}
-      
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg text-center">
-        <p className="text-sm text-muted-foreground">
-          Приходи ежедневно, чтобы заработать больше монет!
-          Купи бустеры в магазине и увеличь свой доход.
-        </p>
+        
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl text-center">Монеты: {coins.toFixed(0)}</CardTitle>
+            <CardDescription className="text-center">
+              {clickMultiplier > 1 && `🔥 Множитель клика: x${clickMultiplier}`}
+              {coinsPerSecond > 0 && ` • 🤖 ${coinsPerSecond} монет/сек`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center p-6">
+            <CoinClicker />
+          </CardContent>
+        </Card>
+        
+        <BoosterTimer />
       </div>
       
       <Navigation />
-    </div>
-  );
-};
-
-// Упрощенная версия прогресс-бара для бустера
-const BoosterProgressBar = ({ booster }: { booster: { endsAt?: number; duration: number } }) => {
-  if (!booster.endsAt || booster.duration === 0) return null;
-  
-  const now = Date.now();
-  const timeLeft = Math.max(0, (booster.endsAt - now) / 1000);
-  const progress = (timeLeft / booster.duration) * 100;
-  
-  // Форматирование времени
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = Math.floor(timeLeft % 60);
-  const timeDisplay = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
-  
-  return (
-    <div className="w-full mt-1">
-      <div className="flex justify-between text-xs mb-1">
-        <span className="text-muted-foreground">Осталось</span>
-        <span>{timeDisplay}</span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-1.5">
-        <div
-          className="bg-primary h-1.5 rounded-full"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
     </div>
   );
 };

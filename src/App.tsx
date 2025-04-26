@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { startPassiveEarning } from "@/lib/store";
+import { initTelegramWebApp } from "@/lib/telegram";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ShopPage from "./pages/ShopPage";
@@ -16,6 +17,9 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
+    // Инициализируем Telegram WebApp при загрузке приложения
+    initTelegramWebApp();
+    
     // Запускаем пассивное получение монет при загрузке приложения
     const earningInterval = startPassiveEarning();
     

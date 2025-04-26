@@ -44,7 +44,7 @@ declare global {
 
 // Токен бота: 8006898941:AAGBhIKsY2VE2LrJbMrfJoUT_ZRJQZQNAXE
 export const BOT_TOKEN = "8006898941:AAGBhIKsY2VE2LrJbMrfJoUT_ZRJQZQNAXE";
-export const BOT_USERNAME = "tapcoins_bot"; // Заменить на имя вашего бота
+export const BOT_USERNAME = "tapcoins_bot"; // Используем предоставленное имя бота
 
 // API URL для отправки сообщений через бота
 const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
@@ -64,6 +64,17 @@ export const initTelegramWebApp = () => {
   if (isTelegramWebApp()) {
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
+    
+    // Добавляем обработчик на кнопку "назад" в WebApp
+    window.Telegram.WebApp.BackButton.onClick(() => {
+      window.history.back();
+    });
+    
+    console.log('Telegram WebApp initialized successfully');
+    return true;
+  } else {
+    console.warn('Telegram WebApp not available. Running in standalone mode.');
+    return false;
   }
 };
 
@@ -71,27 +82,35 @@ export const showTelegramMainButton = (text: string, onClick: () => void) => {
   if (isTelegramWebApp()) {
     const { MainButton } = window.Telegram.WebApp;
     MainButton.setText(text);
-    MainButton.show();
     MainButton.onClick(onClick);
+    MainButton.show();
+    return true;
   }
+  return false;
 };
 
 export const hideTelegramMainButton = () => {
   if (isTelegramWebApp()) {
     window.Telegram.WebApp.MainButton.hide();
+    return true;
   }
+  return false;
 };
 
 export const sendDataToTelegramBot = (data: any) => {
   if (isTelegramWebApp()) {
     window.Telegram.WebApp.sendData(JSON.stringify(data));
+    return true;
   }
+  return false;
 };
 
 export const closeTelegramWebApp = () => {
   if (isTelegramWebApp()) {
     window.Telegram.WebApp.close();
+    return true;
   }
+  return false;
 };
 
 // Получить ссылку для открытия WebApp из бота
@@ -158,5 +177,22 @@ export const notifyBoosterPurchase = async (userId: number, boosterName: string,
   } catch (error) {
     console.error('Ошибка при отправке уведомления:', error);
     return false;
+  }
+};
+
+// Проверка, запущено ли приложение в Telegram WebApp
+export const checkTelegramWebApp = () => {
+  if (isTelegramWebApp()) {
+    return {
+      status: 'ok',
+      user: getTelegramUser(),
+      platform: 'telegram'
+    };
+  } else {
+    return {
+      status: 'standalone',
+      user: null,
+      platform: 'browser'
+    };
   }
 };
