@@ -1,62 +1,56 @@
-import { useEffect, useState } from 'react';
-import { useGameStore } from '@/lib/store';
+import { useState, useEffect } from 'react';
+import { useGameStore, Booster } from '@/lib/store';
 import { Progress } from '@/components/ui/progress';
 
-const BoosterTimer = () => {
-  const { activeBooster, boosterEndTime, boosterExpired } = useGameStore();
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+interface BoosterTimerProps {
+  booster: Booster;
+}
+
+const BoosterTimer: React.FC<BoosterTimerProps> = ({ booster }) => {
+  const [timeLeft, setTimeLeft] = useState(0);
   const [progress, setProgress] = useState(100);
-
+  const deactivateBooster = useGameStore(state => state.deactivateBooster);
+  
   useEffect(() => {
-    if (!activeBooster || !boosterEndTime) {
-      setTimeLeft(null);
-      return;
-    }
-
-    const totalDuration = activeBooster.duration * 1000;
+    if (!booster.active || !booster.endsAt || booster.duration === 0) return;
     
-    const updateTimer = () => {
+    const calculateTimeLeft = () => {
       const now = Date.now();
-      const remaining = boosterEndTime - now;
+      const difference = booster.endsAt! - now;
       
-      if (remaining <= 0) {
+      if (difference <= 0) {
         setTimeLeft(0);
-        boosterExpired();
+        setProgress(0);
+        deactivateBooster(booster.id);
         return;
       }
       
-      setTimeLeft(Math.ceil(remaining / 1000));
-      setProgress((remaining / totalDuration) * 100);
+      setTimeLeft(Math.ceil(difference / 1000));
+      const progressValue = (difference / (booster.duration * 1000)) * 100;
+      setProgress(progressValue);
     };
-
-    // Обновить сразу
-    updateTimer();
     
-    // Установить интервал обновления
-    const timerId = setInterval(updateTimer, 1000);
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
     
-    return () => clearInterval(timerId);
-  }, [activeBooster, boosterEndTime, boosterExpired]);
-
-  if (!activeBooster || !timeLeft) return null;
-
+    return () => clearInterval(timer);
+  }, [booster, deactivateBooster]);
+  
+  if (!booster.active || booster.duration === 0) return null;
+  
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs < 10 ? '0' + secs : secs}`;
   };
-
+  
   return (
-    <div className="w-full max-w-md p-4 bg-muted rounded-lg">
-      <div className="flex justify-between items-center mb-2">
-        <div className="font-medium">
-          {activeBooster.name}
-        </div>
-        <div className="text-sm">
-          {formatTime(timeLeft)}
-        </div>
+    <div className="w-full mt-2">
+      <div className="flex justify-between text-xs mb-1">
+        <span>Осталось</span>
+        <span className="font-medium">{formatTime(timeLeft)}</span>
       </div>
-      <Progress value={progress} className="h-2" />
+      <Progress value={progress} className="h-1.5" />
     </div>
   );
 };

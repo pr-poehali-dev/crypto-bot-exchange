@@ -29,7 +29,7 @@ const CoinFloat: React.FC<CoinFloatProps> = ({ position, value, onComplete }) =>
 };
 
 const CoinClicker: React.FC = () => {
-  const { coins, clickMultiplier, addCoins } = useGameStore();
+  const { coins, clickMultiplier, coinsPerSecond, addCoins } = useGameStore();
   const [isAnimating, setIsAnimating] = useState(false);
   const [floatingCoins, setFloatingCoins] = useState<Array<{ id: number; x: number; y: number; value: number }>>([]);
   const nextIdRef = useRef(0);
@@ -97,11 +97,19 @@ const CoinClicker: React.FC = () => {
         ))}
       </div>
       
-      {clickMultiplier > 1 && (
-        <div className="mt-4 px-4 py-2 bg-accent text-accent-foreground rounded-full text-sm font-medium">
-          Бустер: x{clickMultiplier}
-        </div>
-      )}
+      <div className="mt-6 flex flex-col items-center gap-2">
+        {clickMultiplier > 1 && (
+          <div className="px-4 py-2 bg-accent/80 text-accent-foreground rounded-full text-sm font-medium animate-pulse">
+            Клик: x{clickMultiplier}
+          </div>
+        )}
+        
+        {coinsPerSecond > 0 && (
+          <div className="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium">
+            +{coinsPerSecond} монет/сек
+          </div>
+        )}
+      </div>
     </div>
   );
 };
